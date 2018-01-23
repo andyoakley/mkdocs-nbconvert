@@ -3,11 +3,16 @@ import subprocess
 import os.path
 import tempfile
 import shutil 
+import fnmatch
+
 
 class NotebookConverter(BasePlugin):
 
     def __init__(self):
         pass
+
+    def can_load(self, path):
+        return fnmatch.fnmatch(path.lower(), '*.ipynb') and not 'ipynb_checkpoints' in path.lower()
 
     def on_config(self, config, **kwargs):
         config['extra_javascript'].append('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML')
@@ -16,7 +21,7 @@ class NotebookConverter(BasePlugin):
         page = kwargs['page']
         config = kwargs['config']
 
-        if not page.input_path.endswith('.ipynb'):
+        if not self.can_load(page.input_path):
             return
 
         tmp = tempfile.mkdtemp()
@@ -24,7 +29,7 @@ class NotebookConverter(BasePlugin):
 
         # execute nbconvert
         subprocess.check_output([
-            'jupyter', 'nbconvert',
+            'python','-m', 'nbconvert',
             ipynb_path, 
             '--to', 'markdown',
             '--output-dir', tmp,
