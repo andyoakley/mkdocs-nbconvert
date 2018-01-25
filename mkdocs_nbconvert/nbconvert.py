@@ -60,6 +60,12 @@ class NotebookConverter(BasePlugin):
                 )
 
         if os.path.isdir(files):
+            # sometimes we might end up with a collision, for example, if a
+            # separate plugin happens to also load/convert the page
+            # last in wins.
+            if os.path.isdir(target_in_site):
+                shutil.rmtree(target_in_site)
+
             shutil.copytree(files, target_in_site)
 
         # delete the temp output
