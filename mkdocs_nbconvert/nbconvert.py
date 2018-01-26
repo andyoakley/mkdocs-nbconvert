@@ -1,6 +1,5 @@
 from mkdocs.plugins import BasePlugin
 import os.path
-import fnmatch
 from nbconvert import MarkdownExporter
 import nbformat
 
@@ -11,7 +10,7 @@ class NotebookConverter(BasePlugin):
         self.exporter = MarkdownExporter()
 
     def can_load(self, path):
-        return fnmatch.fnmatch(path.lower(), '*.ipynb') and not 'ipynb_checkpoints' in path.lower()
+        return path.lower().endswith('.ipynb') and not 'ipynb_checkpoints' in path.lower()
 
     def on_config(self, config, **kwargs):
         config['extra_javascript'].append('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML')

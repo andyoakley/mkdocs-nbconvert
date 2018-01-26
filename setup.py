@@ -11,7 +11,6 @@ setup(
     description='Mkdocs plugin to render Jupyter notebooks.',
     install_requires=[
         'nbconvert',
-        'fnmatch',
     ],
 
     entry_points={
