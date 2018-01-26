@@ -1,15 +1,13 @@
 from mkdocs.plugins import BasePlugin
-import subprocess
 import os.path
-import tempfile
-import shutil 
-import fnmatch
+from nbconvert import MarkdownExporter
+import nbformat
 
 
 class NotebookConverter(BasePlugin):
 
     def __init__(self):
-        pass
+        self.exporter = MarkdownExporter()
 
     def can_load(self, path):
         return fnmatch.fnmatch(path.lower(), '*.ipynb') and not 'ipynb_checkpoints' in path.lower()
@@ -24,52 +22,31 @@ class NotebookConverter(BasePlugin):
         if not self.can_load(page.input_path):
             return
 
-        tmp = tempfile.mkdtemp()
         ipynb_path = os.path.join(config['docs_dir'], page.input_path)
+        nb = nbformat.read(ipynb_path, as_version=4)
 
-        # execute nbconvert
-        subprocess.check_output([
-            'python','-m', 'nbconvert',
-            ipynb_path, 
-            '--to', 'markdown',
-            '--output-dir', tmp,
-            ])
-
-        md_path = os.path.join(
-                tmp,
-                os.path.basename(ipynb_path.replace('.ipynb', '.md'))
-                )
+        # we'll place the supporting files alongside the final HTML
+        stem = os.path.splitext(os.path.basename(page.input_path))[0]
+        exporter_resources = {'output_files_dir': stem} 
         
-        # load md file to memory but we don't want it to be copied to the site
-        # output
-        with open(md_path, 'r') as mdfile:
-            md = mdfile.read()
-        os.remove(md_path)
-
-        # copy any other assets
-        files = os.path.join(
-                tmp,
-                os.path.splitext(os.path.basename(ipynb_path))[0]+'_files'
-                )
-
+        (body, resources) = self.exporter.from_notebook_node(nb,
+            resources=exporter_resources)
+            
+        # folder in site may not have been created yet, create it so that we
+        # can drop the support files in there
         target_in_site = os.path.join(
-                config['site_dir'],
-                page.abs_url[1:],
-                '..',
-                os.path.splitext(os.path.basename(ipynb_path))[0]+'_files'
-                )
+                    config['site_dir'],
+                    page.abs_url[1:])
+        os.makedirs(target_in_site, exist_ok=True)
 
-        if os.path.isdir(files):
-            # sometimes we might end up with a collision, for example, if a
-            # separate plugin happens to also load/convert the page
-            # last in wins.
-            if os.path.isdir(target_in_site):
-                shutil.rmtree(target_in_site)
+        for output in resources['outputs'].keys():
+            path = os.path.join(
+                    target_in_site,
+                    '..',
+                    output
+                    )
 
-            shutil.copytree(files, target_in_site)
+            with open(path, 'wb') as f:
+                f.write(resources['outputs'][output])
 
-        # delete the temp output
-        shutil.rmtree(tmp)
-        
-        # return md file
-        return md
+        return body
