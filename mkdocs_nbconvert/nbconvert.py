@@ -1,5 +1,6 @@
 from mkdocs.plugins import BasePlugin
 import os.path
+import fnmatch
 from nbconvert import MarkdownExporter
 import nbformat
 
