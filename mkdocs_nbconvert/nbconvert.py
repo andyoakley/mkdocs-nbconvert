@@ -18,15 +18,16 @@ class NotebookConverter(BasePlugin):
     def on_page_read_source(self, something, **kwargs):
         page = kwargs['page']
         config = kwargs['config']
+        input_path = page.file.src_path
 
-        if not self.can_load(page.input_path):
+        if not self.can_load(input_path):
             return
 
-        ipynb_path = os.path.join(config['docs_dir'], page.input_path)
+        ipynb_path = os.path.join(config['docs_dir'], input_path)
         nb = nbformat.read(ipynb_path, as_version=4)
 
         # we'll place the supporting files alongside the final HTML
-        stem = os.path.splitext(os.path.basename(page.input_path))[0]
+        stem = os.path.splitext(os.path.basename(input_path))[0]
         exporter_resources = {'output_files_dir': stem} 
         
         (body, resources) = self.exporter.from_notebook_node(nb,
