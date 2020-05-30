@@ -1,5 +1,6 @@
 from mkdocs import utils
 from mkdocs.plugins import BasePlugin
+from mkdocs import utils
 import os.path
 from nbconvert import MarkdownExporter
 import nbformat
@@ -9,6 +10,8 @@ class NotebookConverter(BasePlugin):
 
     def __init__(self):
         self.exporter = MarkdownExporter()
+        if not '.ipynb' in utils.markdown_extensions:
+            utils.markdown_extensions.append('.ipynb')
 
     def can_load(self, path):
         return path.lower().endswith('.ipynb') and not 'ipynb_checkpoints' in path.lower()
