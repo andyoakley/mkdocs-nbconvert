@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name='mkdocs-nbconvert',
-    version='0.1.0',
+    version='0.2.0',
     author='Andy Oakley',
     author_email='ao@ao.vc',
     packages=['mkdocs_nbconvert'],
