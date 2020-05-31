@@ -7,6 +7,7 @@ setup(
     author='Andy Oakley',
     author_email='ao@ao.vc',
     packages=['mkdocs_nbconvert'],
+    package_data={"": ["*.tpl"]},
     license='LICENSE.txt',
     description='Mkdocs plugin to render Jupyter notebooks.',
     install_requires=[
