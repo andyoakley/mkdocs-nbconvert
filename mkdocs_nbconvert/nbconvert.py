@@ -72,11 +72,11 @@ class NotebookConverter(BasePlugin):
 
         # append a link to the notebook in the rendered page
         body += f'''
-        <p>
-            <a href="{os.path.split(page.file.abs_src_path)[1]}">
-                Download {nb_name}
-            </a>
-        </p>
+<p>
+    <a href="{os.path.split(page.file.abs_src_path)[1]}">
+        Download {nb_name}
+    </a>
+</p>
         '''
 
         return body
