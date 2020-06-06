@@ -14,7 +14,7 @@ def mkdocs_site(tmpdir):
 
     cfg = config.load_config(os.path.join(mkdocs_root, 'mkdocs.yml'))
     cfg['site_dir'] = tmpdir
-    build.build(cfg, dirty=True)
+    build.build(cfg)
 
 
 def check_for_output(mkdocs_site, tmpdir, path, targets):
