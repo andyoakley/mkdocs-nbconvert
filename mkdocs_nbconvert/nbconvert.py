@@ -1,8 +1,7 @@
 from mkdocs import utils
 from mkdocs.plugins import BasePlugin
-from mkdocs import utils
 import os.path
-from nbconvert import MarkdownExporter 
+from nbconvert import MarkdownExporter
 import nbformat
 import pkgutil
 import tempfile
@@ -12,14 +11,18 @@ class NotebookConverter(BasePlugin):
 
     def __init__(self):
         self.exporter = MarkdownExporter()
-        if not '.ipynb' in utils.markdown_extensions:
+        if '.ipynb' not in utils.markdown_extensions:
             utils.markdown_extensions.append('.ipynb')
 
     def can_load(self, path):
-        return path.lower().endswith('.ipynb') and not 'ipynb_checkpoints' in path.lower()
+        return (
+            path.lower().endswith('.ipynb')
+            and 'ipynb_checkpoints' not in path.lower()
+        )
 
     def on_config(self, config, **kwargs):
-        config['extra_javascript'].append('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML')
+        js = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.5/es5/startup.js'
+        config['extra_javascript'].append(js)
 
     def on_pre_build(self, config):
         # we need to put a copy of the template file on disk
@@ -44,11 +47,14 @@ class NotebookConverter(BasePlugin):
         self.exporter.template_file = self.template_file.name
         exporter_resources = {
             'output_files_dir': '.',
-        } 
+        }
 
-        # actually do the conversion 
-        (body, resources) = self.exporter.from_notebook_node(nb, resources=exporter_resources)
-        
+        # actually do the conversion
+        (body, resources) = self.exporter.from_notebook_node(
+            nb,
+            resources=exporter_resources
+        )
+
         # folder in site may not have been created yet, create it so that we
         # can drop the support files in there
         target_in_site = os.path.split(page.file.abs_dest_path)[0]
@@ -65,6 +71,12 @@ class NotebookConverter(BasePlugin):
         utils.copy_file(ipynb_path, b)
 
         # append a link to the notebook in the rendered page
-        body += f'<a href="{os.path.split(page.file.abs_src_path)[1]}">Download {nb_name}</a>'
+        body += f'''
+        <p>
+            <a href="{os.path.split(page.file.abs_src_path)[1]}">
+                Download {nb_name}
+            </a>
+        </p>
+        '''
 
         return body

@@ -4,6 +4,7 @@ import os.path
 from mkdocs import config
 from mkdocs.commands import build
 
+
 @pytest.fixture()
 def mkdocs_site(tmpdir):
     mkdocs_root = os.path.join(
@@ -25,8 +26,11 @@ def check_for_output(mkdocs_site, tmpdir, path, targets):
         )
         assert os.path.exists(p)
 
+
 def test_plain(mkdocs_site, tmpdir):
-    check_for_output(mkdocs_site, tmpdir, 'plain', ['index.html','plain.ipynb'])
+    targets = ['index.html', 'plain.ipynb']
+    check_for_output(mkdocs_site, tmpdir, 'plain', targets)
+
 
 def test_image(mkdocs_site, tmpdir):
     targets = [

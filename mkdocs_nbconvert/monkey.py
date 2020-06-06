@@ -7,11 +7,14 @@ from mkdocs.structure.files import File
 
 original_is_documentation_page = File.is_documentation_page
 
+
 def my_is_documentation_page(self):
     md = original_is_documentation_page(self)
-    ipynb = os.path.splitext(self.src_path)[1] == '.ipynb' and not 'ipynb_checkpoints' in self.src_path
+    ipynb = (
+        os.path.splitext(self.src_path)[1] == '.ipynb'
+        and 'ipynb_checkpoints' not in self.src_path
+    )
     return md or ipynb
 
+
 File.is_documentation_page = my_is_documentation_page
-
-
