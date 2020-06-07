@@ -5,6 +5,7 @@ from nbconvert import MarkdownExporter
 import nbformat
 import pkgutil
 import tempfile
+import base64
 
 
 class NotebookConverter(BasePlugin):
@@ -36,6 +37,35 @@ class NotebookConverter(BasePlugin):
         # clean up temporary template file
         self.template_file = None
 
+    def save_attachment(self, i, cell, fn, filetype, target_in_site):
+        stem, ext = os.path.splitext(fn)
+        unique_filename = f"{stem}_{i:04}{ext}"
+        path = os.path.join(target_in_site, unique_filename)
+        with open(path, 'wb') as f:
+            b = base64.b64decode(cell['attachments'][fn][filetype])
+            f.write(b)
+
+        cell['source'] = cell['source'].replace(
+            f"attachment:{fn}",
+            unique_filename
+        )
+
+    def save_attachments(self, nb, target_in_site):
+        KNOWN_TYPES = {'image/png'}
+        for i, cell in enumerate(nb['cells']):
+            if 'attachments' in cell:
+                for fn in cell['attachments'].keys():
+                    for filetype in KNOWN_TYPES:
+                        if filetype in cell['attachments'][fn]:
+                            self.save_attachment(
+                                i,
+                                cell,
+                                fn,
+                                filetype,
+                                target_in_site
+                            )
+        return nb
+
     def on_page_read_source(self, page, config):
         if not self.can_load(page.file.abs_src_path):
             return
@@ -49,16 +79,20 @@ class NotebookConverter(BasePlugin):
             'output_files_dir': '.',
         }
 
+        # folder in site may not have been created yet, create it so that we
+        # can drop the support files in there
+        target_in_site = os.path.split(page.file.abs_dest_path)[0]
+        os.makedirs(target_in_site, exist_ok=True)
+
+        # save attachments to disk, rewriting references to them
+        # nbconvert should do this, but doesn't.
+        nb = self.save_attachments(nb, target_in_site)
+
         # actually do the conversion
         (body, resources) = self.exporter.from_notebook_node(
             nb,
             resources=exporter_resources
         )
-
-        # folder in site may not have been created yet, create it so that we
-        # can drop the support files in there
-        target_in_site = os.path.split(page.file.abs_dest_path)[0]
-        os.makedirs(target_in_site, exist_ok=True)
 
         for output in resources['outputs'].keys():
             path = os.path.join(target_in_site, output)

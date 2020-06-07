@@ -39,3 +39,11 @@ def test_image(mkdocs_site, tmpdir):
         'output_3_0.png'
     ]
     check_for_output(mkdocs_site, tmpdir, 'with-image', targets)
+
+def test_attachment(mkdocs_site, tmpdir):
+    targets = [
+        'index.html',
+        'attachment.ipynb',
+        'image_0000.png'
+    ]
+    check_for_output(mkdocs_site, tmpdir, 'attachment', targets)
