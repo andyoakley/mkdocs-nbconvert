@@ -1,17 +1,15 @@
 from mkdocs import utils
 from mkdocs.plugins import BasePlugin
 import os.path
-from nbconvert import MarkdownExporter
+from nbconvert import HTMLExporter
 import nbformat
 import pkgutil
 import tempfile
-import base64
 
 
 class NotebookConverter(BasePlugin):
 
     def __init__(self):
-        self.exporter = MarkdownExporter()
         if '.ipynb' not in utils.markdown_extensions:
             utils.markdown_extensions.append('.ipynb')
 
@@ -37,80 +35,33 @@ class NotebookConverter(BasePlugin):
         # clean up temporary template file
         self.template_file = None
 
-    def save_attachment(self, i, cell, fn, filetype, target_in_site):
-        stem, ext = os.path.splitext(fn)
-        unique_filename = f"{stem}_{i:04}{ext}"
-        path = os.path.join(target_in_site, unique_filename)
-        with open(path, 'wb') as f:
-            b = base64.b64decode(cell['attachments'][fn][filetype])
-            f.write(b)
-
-        cell['source'] = cell['source'].replace(
-            f"attachment:{fn}",
-            unique_filename
-        )
-
-    def save_attachments(self, nb, target_in_site):
-        KNOWN_TYPES = {'image/png'}
-        for i, cell in enumerate(nb['cells']):
-            if 'attachments' in cell:
-                for fn in cell['attachments'].keys():
-                    for filetype in KNOWN_TYPES:
-                        if filetype in cell['attachments'][fn]:
-                            self.save_attachment(
-                                i,
-                                cell,
-                                fn,
-                                filetype,
-                                target_in_site
-                            )
-        return nb
-
     def on_page_read_source(self, page, config):
         if not self.can_load(page.file.abs_src_path):
             return
+        # we'll fill this in later in on_page_content
+        return ""
 
+    def on_page_content(self, content, page, config, files):
+        if not self.can_load(page.file.abs_src_path):
+            return content
+
+        exp = HTMLExporter()
+
+        exp.template_file = self.template_file.name
         ipynb_path = page.file.abs_src_path
         nb = nbformat.read(ipynb_path, as_version=4)
 
-        # we'll place the supporting files alongside the final HTML
-        self.exporter.template_file = self.template_file.name
         exporter_resources = {
-            'output_files_dir': '.',
+            'filename': os.path.split(page.file.abs_src_path)[1],
         }
-
-        # folder in site may not have been created yet, create it so that we
-        # can drop the support files in there
-        target_in_site = os.path.split(page.file.abs_dest_path)[0]
-        os.makedirs(target_in_site, exist_ok=True)
-
-        # save attachments to disk, rewriting references to them
-        # nbconvert should do this, but doesn't.
-        nb = self.save_attachments(nb, target_in_site)
-
-        # actually do the conversion
-        (body, resources) = self.exporter.from_notebook_node(
+        (body, resources) = exp.from_notebook_node(
             nb,
             resources=exporter_resources
         )
-
-        for output in resources['outputs'].keys():
-            path = os.path.join(target_in_site, output)
-            with open(path, 'wb') as f:
-                f.write(resources['outputs'][output])
 
         # copy the notebook itself into the destination too
         nb_name = os.path.split(page.file.abs_src_path)[1]
         b = os.path.join(os.path.split(page.file.abs_dest_path)[0], nb_name)
         utils.copy_file(ipynb_path, b)
-
-        # append a link to the notebook in the rendered page
-        body += f'''
-<p>
-    <a href="{os.path.split(page.file.abs_src_path)[1]}">
-        Download {nb_name}
-    </a>
-</p>
-        '''
 
         return body

@@ -27,6 +27,12 @@ def check_for_output(mkdocs_site, tmpdir, path, targets):
         assert os.path.exists(p)
 
 
+def grep(f, needle):
+    with open(f, 'r') as h:
+        content = h.read()
+        return needle in content
+
+
 def test_plain(mkdocs_site, tmpdir):
     targets = ['index.html', 'plain.ipynb']
     check_for_output(mkdocs_site, tmpdir, 'plain', targets)
@@ -36,14 +42,23 @@ def test_image(mkdocs_site, tmpdir):
     targets = [
         'index.html',
         'with-image.ipynb',
-        'output_3_0.png'
     ]
     check_for_output(mkdocs_site, tmpdir, 'with-image', targets)
+
+    assert grep(
+        os.path.join(tmpdir, 'with-image', 'index.html'),
+        '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXcAAAD8'
+    )
+
 
 def test_attachment(mkdocs_site, tmpdir):
     targets = [
         'index.html',
         'attachment.ipynb',
-        'image_0000.png'
     ]
     check_for_output(mkdocs_site, tmpdir, 'attachment', targets)
+
+    assert grep(
+        os.path.join(tmpdir, 'attachment', 'index.html'),
+        '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUh'
+    )
