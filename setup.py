@@ -1,6 +1,11 @@
 
 from distutils.core import setup
 
+# Automatically edit the mkdocs/utils/__init__.py to include 
+# .ipynb extensions.
+from subprocess import call
+call(['python', 'auto-patch.py'])
+
 setup(
     name='mkdocs-nbconvert',
     version='0.2.0',
