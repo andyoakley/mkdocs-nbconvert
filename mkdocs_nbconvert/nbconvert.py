@@ -34,7 +34,6 @@ class NotebookConverter(BasePlugin):
 
     def on_post_build(self, config):
         # clean up temporary template file
-        os.remove(self.template_file.name)
         self.template_file = None
 
     def on_page_read_source(self, page, config):
