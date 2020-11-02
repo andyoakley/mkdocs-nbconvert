@@ -1,5 +1,6 @@
 from mkdocs import utils
 from mkdocs.plugins import BasePlugin
+import os
 import os.path
 from nbconvert import HTMLExporter
 import nbformat
@@ -26,13 +27,14 @@ class NotebookConverter(BasePlugin):
     def on_pre_build(self, config):
         # we need to put a copy of the template file on disk
         # so that nbconvert can find it
-        self.template_file = tempfile.NamedTemporaryFile()
+        self.template_file = tempfile.NamedTemporaryFile(delete=False)
         tpl = pkgutil.get_data(__package__, 'mkdocs.tpl')
         self.template_file.write(tpl)
         self.template_file.flush()
 
     def on_post_build(self, config):
         # clean up temporary template file
+        os.remove(self.template_file.name)
         self.template_file = None
 
     def on_page_read_source(self, page, config):
