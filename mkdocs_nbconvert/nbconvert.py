@@ -24,7 +24,7 @@ class NotebookConverter(BasePlugin):
         js = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.5/es5/startup.js'
         config['extra_javascript'].append(js)
 
-    def on_pre_build(self, config):
+    def on_pre_build(self, config, **kwargs):
         # we need to put a copy of the template file on disk
         # so that nbconvert can find it
         self.template_file = tempfile.NamedTemporaryFile(delete=False)
@@ -32,17 +32,17 @@ class NotebookConverter(BasePlugin):
         self.template_file.write(tpl)
         self.template_file.flush()
 
-    def on_post_build(self, config):
+    def on_post_build(self, config, **kwargs):
         # clean up temporary template file
         self.template_file = None
 
-    def on_page_read_source(self, page, config):
+    def on_page_read_source(self, page, config, **kwargs):
         if not self.can_load(page.file.abs_src_path):
             return
         # we'll fill this in later in on_page_content
         return ""
 
-    def on_page_content(self, content, page, config, files):
+    def on_page_content(self, content, page, config, files, **kwargs):
         if not self.can_load(page.file.abs_src_path):
             return content
 
