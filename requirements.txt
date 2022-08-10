@@ -1,2 +1,2 @@
 mkdocs
-nbconvert==5.6.1
+nbconvert==6.3.0

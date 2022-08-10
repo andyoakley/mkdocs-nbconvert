@@ -11,7 +11,7 @@ setup(
     license='LICENSE.txt',
     description='Mkdocs plugin to render Jupyter notebooks.',
     install_requires=[
-        'nbconvert==5.6.1',
+        'nbconvert==6.3.0',
     ],
 
     entry_points={
