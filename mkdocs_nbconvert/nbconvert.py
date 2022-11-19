@@ -12,7 +12,7 @@ class NotebookConverter(BasePlugin):
 
     def __init__(self):
         if '.ipynb' not in utils.markdown_extensions:
-            utils.markdown_extensions.append('.ipynb')
+            utils.markdown_extensions = utils.markdown_extensions + ('.ipynb',)
 
     def can_load(self, path):
         return (
