@@ -49,6 +49,8 @@ class NotebookConverter(BasePlugin):
         exp = HTMLExporter()
 
         exp.template_file = self.template_file.name
+        exp.template_paths += [os.path.dirname(self.template_file.name)]
+
         ipynb_path = page.file.abs_src_path
         nb = nbformat.read(ipynb_path, as_version=4)
 

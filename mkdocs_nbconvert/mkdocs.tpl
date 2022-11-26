@@ -1,10 +1,10 @@
-{%- extends 'basic.tpl' -%}
+{%- extends 'classic/base.html.j2' -%}
 
-{%- block header -%}
-<div class="download-ipynb">
+{%- block footer -%}
+<div class="nbconvert-download">
     <a href="{{ resources['filename'] }}">
         Download
         {{ resources['filename'] }}
     </a>
 </div>
-{% endblock header %}
+{% endblock footer %}
